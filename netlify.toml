@@ -9,9 +9,9 @@
 #   status = 200
 
 # PWA/キャッシュ絡みで更新反映が遅い場合は以下を有効化
-# [[headers]]
-#   for = "/sw.js"
-#   [headers.values]
-#     Cache-Control = "no-cache"
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
 
 

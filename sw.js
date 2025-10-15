@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poker-flip-app-v2';
+const CACHE_NAME = 'poker-flip-app-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -12,6 +12,8 @@ const urlsToCache = [
 // Service Workerのインストール
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
+  // 新バージョンを即時待機解除
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -37,6 +39,9 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // 旧SWからの即時引き継ぎ
+      return self.clients.claim();
     })
   );
 });
@@ -50,38 +55,39 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // HTML(ナビゲーション)はネットワーク優先
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // 成功したらキャッシュへも保存
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => {
+          // オフライン時はキャッシュの index.html を返す
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
+  // その他はキャッシュ優先（フォールバックでネットワーク）
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // キャッシュにヒットした場合
-        if (response) {
-          console.log('Service Worker: Serving from cache', event.request.url);
+    caches.match(event.request).then((cached) => {
+      if (cached) {
+        return cached;
+      }
+      return fetch(event.request).then((response) => {
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-
-        // キャッシュにない場合はネットワークから取得
-        console.log('Service Worker: Fetching from network', event.request.url);
-        return fetch(event.request).then((response) => {
-          // レスポンスが有効かチェック
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // レスポンスをクローンしてキャッシュに保存
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-
-          return response;
-        }).catch(() => {
-          // ネットワークエラーの場合、オフラインページを返す
-          if (event.request.destination === 'document') {
-            return caches.match('/index.html');
-          }
-        });
-      })
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      });
+    })
   );
 });
 
