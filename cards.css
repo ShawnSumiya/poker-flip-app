@@ -274,8 +274,8 @@
   /* スマホ版コピーライト */
   .copyright {
     font-size: 10px;
-    margin-top: 16px;
-    padding: 12px 0 20px 0;
+    margin-top: 12px;
+    padding: 8px 0 8px 0;
     letter-spacing: 0.3px;
   }
 }
