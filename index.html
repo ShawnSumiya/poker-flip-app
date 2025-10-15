@@ -233,10 +233,12 @@
     const playersDec = document.getElementById('playersDec');
     
 
-    // インストールボタンを隠すユーティリティ
+    // インストール案内を隠すユーティリティ（Androidボタン/iOSヒントの両方を対象）
     function hideInstallPrompt() {
       const btn = document.querySelector('button[aria-label="このアプリをホーム画面にインストール"]');
       if (btn) btn.remove();
+      const iosHint = document.getElementById('iosInstallHint');
+      if (iosHint) iosHint.remove();
     }
 
     // NLH Flipout events
@@ -259,6 +261,33 @@
       hideInstallPrompt();
       autoReveal({ flopDelayMs: 600, turnDelayMs: 1000, riverDelayMs: 1000, autoShowdown: false });
     });
+
+    // --- iOS Safari向け: beforeinstallpromptが無いため、トップのみヒントを表示 ---
+    (function showIosInstallHintIfNeeded() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      if (isIOS && isSafari && !isStandalone) {
+        const toolbar = document.querySelector('.toolbar');
+        if (!toolbar) return;
+        const hint = document.createElement('div');
+        hint.id = 'iosInstallHint';
+        hint.setAttribute('role', 'status');
+        hint.setAttribute('aria-live', 'polite');
+        hint.style.padding = '8px 12px';
+        hint.style.borderRadius = '8px';
+        hint.style.background = 'rgba(0,0,0,0.06)';
+        hint.style.color = '#333';
+        hint.style.fontSize = '12px';
+        hint.style.display = 'flex';
+        hint.style.alignItems = 'center';
+        hint.style.gap = '8px';
+        hint.style.maxWidth = '100%';
+        hint.innerHTML = '📲 ホーム画面に追加するには、Safariの共有ボタンから「ホーム画面に追加」を選択してください。';
+        toolbar.appendChild(hint);
+      }
+    })();
 
     // 人数の上下ボタンと入力のクランプ
     function clampPlayers(val) {
