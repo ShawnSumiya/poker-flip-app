@@ -1,18 +1,17 @@
-// Netlify Forms の送信トリガー（submission-created）で呼ばれる関数
-// Resend API を使って Gmail 宛にメール通知します
+// Netlify Forms submission-created trigger → AWS SESでメール送信
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 export async function handler(event) {
   try {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const EMAIL_TO = process.env.EMAIL_TO; // 受信先（あなたのGmailなど）
-    const EMAIL_FROM = process.env.EMAIL_FROM || 'no-reply@poker-flip.app';
+    const AWS_REGION = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION;
+    const EMAIL_TO = process.env.EMAIL_TO; // 受信先
+    const EMAIL_FROM = process.env.EMAIL_FROM; // 送信元（SESで検証済み）
 
-    if (!RESEND_API_KEY || !EMAIL_TO) {
-      console.log('Missing RESEND_API_KEY or EMAIL_TO');
+    if (!AWS_REGION || !EMAIL_TO || !EMAIL_FROM) {
+      console.log('Missing required env: AWS_REGION/EMAIL_TO/EMAIL_FROM');
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
     }
 
-    // Netlify Forms のペイロード
     const payload = JSON.parse(event.body);
     const formName = payload?.payload?.form_name || 'unknown-form';
     const data = payload?.payload?.data || {};
@@ -44,26 +43,21 @@ export async function handler(event) {
       </div>
     `;
 
-    // Resend API でメール送信
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
+    const ses = new SESClient({ region: AWS_REGION });
+    const cmd = new SendEmailCommand({
+      Destination: { ToAddresses: [EMAIL_TO] },
+      Message: {
+        Subject: { Data: subject, Charset: 'UTF-8' },
+        Body: {
+          Text: { Data: text, Charset: 'UTF-8' },
+          Html: { Data: html, Charset: 'UTF-8' },
+        },
       },
-      body: JSON.stringify({
-        from: EMAIL_FROM,
-        to: [EMAIL_TO],
-        subject,
-        text,
-        html
-      })
+      Source: EMAIL_FROM,
+      ReplyToAddresses: userEmail ? [userEmail] : undefined,
     });
-
-    if (!resp.ok) {
-      const body = await resp.text();
-      console.log('Resend error', resp.status, body);
-    }
+    const resp = await ses.send(cmd);
+    console.log('SES sent', resp?.MessageId);
 
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (e) {
@@ -77,7 +71,7 @@ function escapeHtml(str) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/\"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
