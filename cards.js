@@ -42,14 +42,57 @@ export function createFlippableCard(suit, rank, initiallyFaceDown = true) {
   inner.appendChild(back);
   wrap.appendChild(inner);
 
+  // タッチ開始位置と時間を記録
+  let touchStartTime = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isScrolling = false;
+  
   // クリック/タッチでフリップ
   const handleFlip = (e) => {
     e.preventDefault();
     inner.classList.toggle('is-back');
   };
   
+  // タッチ開始
+  const handleTouchStart = (e) => {
+    touchStartTime = Date.now();
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    isScrolling = false;
+  };
+  
+  // タッチ移動（スクロール検知）
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartX);
+    const deltaY = Math.abs(touch.clientY - touchStartY);
+    
+    // 移動距離が10px以上の場合、スクロールと判定
+    if (deltaX > 10 || deltaY > 10) {
+      isScrolling = true;
+    }
+  };
+  
+  // タッチ終了
+  const handleTouchEnd = (e) => {
+    const touchDuration = Date.now() - touchStartTime;
+    const touch = e.changedTouches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartX);
+    const deltaY = Math.abs(touch.clientY - touchStartY);
+    
+    // スクロールではなく、短時間のタップの場合のみフリップ
+    if (!isScrolling && touchDuration < 500 && deltaX < 10 && deltaY < 10) {
+      e.preventDefault();
+      inner.classList.toggle('is-back');
+    }
+  };
+  
   wrap.addEventListener('click', handleFlip);
-  wrap.addEventListener('touchend', handleFlip);
+  wrap.addEventListener('touchstart', handleTouchStart);
+  wrap.addEventListener('touchmove', handleTouchMove);
+  wrap.addEventListener('touchend', handleTouchEnd);
 
   return wrap;
 }
