@@ -1,0 +1,286 @@
+/* かわいいパステルカードUI（元プロジェクト由来のスタイルを抽出） */
+.cute-card {
+  width: 100px;
+  height: 140px;
+  min-width: 100px;
+  min-height: 140px;
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 3px solid #000;
+  border-radius: 15px;
+  position: relative;
+  box-shadow:
+    0 4px 15px rgba(0,0,0,0.1),
+    0 0 20px rgba(255, 182, 193, 0.3);
+  display: inline-flex;
+  flex-shrink: 0;
+  overflow: visible;
+  transition: transform 0.2s;
+  backface-visibility: hidden;
+}
+
+.cute-card .rank { color: #000; }
+.cute-card.spade   .center-suit { color: #5a6abf; }
+.cute-card.heart   .center-suit { color: #ff6b9d; }
+.cute-card.diamond .center-suit { color: #d32f2f; }
+.cute-card.club    .center-suit { color: #4db89e; }
+
+.cute-card .corner-top {
+  position: absolute; top: 8px; left: 10px; text-align: center; line-height: 1.2; z-index: 1;
+}
+.cute-card .corner-bottom {
+  position: absolute; bottom: 8px; right: 10px; text-align: center; line-height: 1.2; z-index: 1;
+}
+.cute-card .corner-top .rank,
+.cute-card .corner-bottom .rank {
+  font-size: 24px; font-weight: 800; font-family: 'Comic Sans MS', 'Arial Rounded', cursive; display: block;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+}
+.cute-card .center-suit {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 50px; opacity: 0.8; filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.1));
+}
+
+/* フリップ演出用 */
+.flip-wrap {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+  will-change: transform;
+}
+.flip-inner {
+  position: relative;
+  width: 100px; height: 140px;
+  transition: transform 0.5s ease-in-out;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-inner.is-back { 
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border-radius: 15px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+.card-front { /* 表: 通常のカード */ }
+.card-back {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  background: linear-gradient(135deg, #ffb366 0%, #ff9f43 50%, #ff8c42 100%);
+  border: 3px solid #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back::after {
+  content: 'D.D Poker';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #fff;
+  font-weight: bold;
+  pointer-events: none;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* NLH flipout table */
+.board-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0 16px;
+}
+
+.board-holder {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ディール（配り）演出 */
+@keyframes deal-card {
+  0% { transform: translateY(-20px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.dealing {
+  animation: deal-card 260ms ease-out both;
+  will-change: transform, opacity;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* バーンカード置き場 */
+.burn-slot { /* 旧：左側固定（未使用） */ }
+
+/* （バーンUIは削除） */
+.burn-slot .burn-stack {
+  position: relative;
+  width: 100px;
+  height: 140px;
+}
+.burn-slot .burn-card {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100px; height: 140px;
+  transform: rotate(-12deg);
+  filter: grayscale(0.2) brightness(0.95);
+  opacity: 0.9;
+}
+.burn-slot .burn-card:nth-child(2) { transform: rotate(-6deg) translate(6px, 6px); opacity: 0.85; }
+.burn-slot .burn-card:nth-child(3) { transform: rotate(-18deg) translate(-4px, 10px); opacity: 0.8; }
+.burn-slot .burn-card:nth-child(4) { transform: rotate(-10deg) translate(10px, 12px); opacity: 0.75; }
+.burn-slot .burn-label {
+  position: absolute;
+  bottom: -18px;
+  font-size: 12px;
+  color: #333;
+  font-weight: bold;
+  opacity: 0.7;
+}
+
+.seats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.seat {
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.seat .name {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.hole {
+  display: flex;
+  gap: 8px;
+}
+
+.status {
+  margin-top: 8px;
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+}
+
+.winner {
+  outline: 3px solid #22c55e;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+}
+
+/* --- 出現演出（フロップ/ターン/リバー） --- */
+@keyframes pop-in-card {
+  0% { transform: scale(0.85) translateZ(0); opacity: 0; }
+  60% { transform: scale(1.05) translateZ(0); opacity: 1; }
+  100% { transform: scale(1) translateZ(0); opacity: 1; }
+}
+
+/* 新規公開カードに付与されるラベル */
+.board-row .flip-wrap.newly-dealt .flip-inner {
+  animation: pop-in-card 400ms ease-out both;
+  will-change: transform, opacity;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+@media (max-width: 768px) {
+  .cute-card { width: 60px; height: 84px; min-width: 60px; min-height: 84px; }
+  .flip-inner { width: 60px; height: 84px; }
+  .cute-card .corner-top .rank, .cute-card .corner-bottom .rank { font-size: 16px; }
+  .cute-card .center-suit { font-size: 30px; }
+}
+
+/* スマホ最適化（小型端末想定） */
+@media (max-width: 480px) {
+  body { 
+    padding: 12px;
+    position: fixed;
+    overflow: hidden;
+  }
+
+  .container { 
+    padding: 16px; 
+    border-radius: 12px;
+    max-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .toolbar { gap: 8px; }
+  .btn { 
+    padding: 8px 10px; 
+    font-size: 12px; 
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .board-holder { flex: 1 1 auto; }
+  .board-row { gap: 8px; margin: 6px 0 10px; }
+
+  /* カードサイズをさらに縮小 */
+  .cute-card { 
+    width: 52px; 
+    height: 72px; 
+    min-width: 52px; 
+    min-height: 72px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .flip-inner { 
+    width: 52px; 
+    height: 72px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .cute-card .corner-top .rank, .cute-card .corner-bottom .rank { font-size: 14px; }
+  .cute-card .center-suit { font-size: 26px; }
+  
+  /* スマホ版D.D Poker背面の調整 */
+  .card-back::after {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  /* 座席エリアは2列にし、読みやすく */
+  .seats { grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 8px; }
+  .seat { 
+    padding: 6px; 
+    border-radius: 10px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .seat .name { font-size: 12px; margin-bottom: 4px; }
+  .hole { gap: 6px; }
+
+  .status { font-size: 12px; }
+  
+  /* スマホ版コピーライト */
+  .copyright {
+    font-size: 10px;
+    margin-top: 12px;
+    padding-top: 8px;
+    letter-spacing: 0.3px;
+  }
+}
+
+

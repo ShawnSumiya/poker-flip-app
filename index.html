@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Poker Flip App</title>
+  <meta name="description" content="トランプカードをフリップして表示するミニアプリ">
+  
+  <!-- PWA設定 -->
+  <meta name="theme-color" content="#ff9f43">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Poker Flip">
+  <meta name="msapplication-TileColor" content="#ff9f43">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="Poker Flip">
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- アイコン設定 -->
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIGZpbGw9IiM2NjdlZWEiIHJ4PSI0Ii8+PHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjkiIGhlaWdodD0iMTMiIGZpbGw9IiNmZmZmZmYiIHJ4PSIyIi8+PHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iOSIgaGVpZ2h0PSIxMyIgZmlsbD0iI2ZmZmZmZiIgcng9IjIiLz48dGV4dCB4PSIxNiIgeT0iMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QPC90ZXh0Pjwvc3ZnPg==">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiM2NjdlZWEiIHJ4PSIyNCIvPjxyZWN0IHg9IjM2IiB5PSI0OCIgd2lkdGg9IjU0IiBoZWlnaHQ9Ijc4IiBmaWxsPSIjZmZmZmZmIiByeD0iMTIiLz48cmVjdCB4PSI2MCIgeT0iNjAiIHdpZHRoPSI1NCIgaGVpZ2h0PSI3OCIgZmlsbD0iI2ZmZmZmZiIgcng9IjEyIi8+PHRleHQgeD0iOTYiIHk9IjEzMiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qb2tlcjwvdGV4dD48L3N2Zz4=">
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="./manifest.json">
+  
+  <link rel="stylesheet" href="./cards.css">
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffb366 0%, #ff9f43 50%, #ff8c42 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      padding: 24px;
+      width: 100%;
+      max-width: 960px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      text-align: center;
+      color: #333;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #667eea;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    #revealBoardBtn {
+      background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+      box-shadow: 0 4px 12px rgba(255,107,157,0.4);
+    }
+
+    #revealBoardBtn:hover {
+      background: linear-gradient(135deg, #ff5a8a 0%, #ff7fa1 100%);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(80px, 1fr));
+      gap: 12px;
+      justify-items: center;
+    }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .copyright {
+      text-align: center;
+      font-size: 12px;
+      color: #333;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.2);
+      font-family: Arial, sans-serif;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Poker Flip App</h1>
+    
+    
+
+    <h2 style="margin:0 0 8px; text-align:center; color:#333; font-size:18px;">NLH フリップアウト</h2>
+    <div class="toolbar" id="nlhToolbar">
+      <label style="display:flex; align-items:center; gap:8px; font-weight:bold; color:#333;">
+        プレイヤー人数
+        <input id="playersCount" type="number" min="2" max="12" step="1" value="6" style="width:64px; padding:10px 12px; border-radius:10px; border:1px solid #ccc; font-size:14px;">
+        <button id="playersInc" class="btn" aria-label="人数を増やす" style="padding:6px 10px; line-height:1;">▲</button>
+        <button id="playersDec" class="btn" aria-label="人数を減らす" style="padding:6px 10px; line-height:1;">▼</button>
+      </label>
+      <button class="btn" id="startFlipoutBtn">新しいハンド</button>
+      <button class="btn" id="revealBoardBtn">ボードを出す</button>
+      <button class="btn" id="showdownBtn">ショーダウン（役の判定）</button>
+    </div>
+
+    <div id="tableArea">
+      <div style="display:flex; align-items:center; justify-content:center; gap:16px; width:100%;">
+        <div class="board-holder">
+          <div id="community" class="board-row"></div>
+        </div>
+      </div>
+      <div id="seats" class="seats"></div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <!-- コピーライト -->
+    <div class="copyright">
+      © 2025 D.D🐏. All rights reserved.
+    </div>
+    
+  </div>
+
+  <script type="module" src="./cards.js"></script>
+  
+  <!-- Service Worker登録 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered successfully:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed:', error);
+          });
+      });
+    }
+    
+    // PWAインストール促進
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('PWAインストール可能');
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // インストールボタンを表示
+      const installBtn = document.createElement('button');
+      installBtn.textContent = '📱 アプリをインストール';
+      installBtn.className = 'btn';
+      installBtn.style.margin = '8px';
+      installBtn.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+      installBtn.style.boxShadow = '0 4px 12px rgba(34,197,94,0.4)';
+      
+      installBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('PWAインストール承認');
+            } else {
+              console.log('PWAインストール拒否');
+            }
+            deferredPrompt = null;
+            installBtn.remove();
+          });
+        }
+      });
+      
+      // ツールバーに追加
+      const toolbar = document.querySelector('.toolbar');
+      if (toolbar) {
+        toolbar.appendChild(installBtn);
+      }
+    });
+    
+    // インストール完了の検知
+    window.addEventListener('appinstalled', (evt) => {
+      console.log('PWAがインストールされました');
+    });
+  </script>
+  
+  <script type="module">
+    import { startNewHand, startNewHandAnimated, showdown, autoReveal } from './cards.js';
+
+    const seats = document.getElementById('seats');
+    const community = document.getElementById('community');
+    const statusEl = document.getElementById('status');
+
+    // NLH Flipout controls
+    const playersCountInput = document.getElementById('playersCount');
+    const startFlipoutBtn = document.getElementById('startFlipoutBtn');
+    const revealBoardBtn = document.getElementById('revealBoardBtn');
+    const showdownBtn = document.getElementById('showdownBtn');
+    const playersInc = document.getElementById('playersInc');
+    const playersDec = document.getElementById('playersDec');
+    
+
+    // NLH Flipout events
+    startFlipoutBtn.addEventListener('click', async () => {
+      const n = Math.max(2, Math.min(12, parseInt(playersCountInput.value || '6', 10)));
+      await startNewHandAnimated({ seatsEl: seats, communityEl: community, statusEl, numPlayers: n });
+    });
+
+    // 手動のフロップ/ターン/リバーは削除（自動進行に一本化）
+
+    showdownBtn.addEventListener('click', () => {
+      showdown();
+    });
+
+
+    // ボードを出す: フロップ→ターン→リバーの自動公開
+    revealBoardBtn.addEventListener('click', () => {
+      autoReveal({ flopDelayMs: 600, turnDelayMs: 1000, riverDelayMs: 1000, autoShowdown: false });
+    });
+
+    // 人数の上下ボタンと入力のクランプ
+    function clampPlayers(val) {
+      const n = Math.max(2, Math.min(12, parseInt(val || '6', 10)));
+      playersCountInput.value = String(n);
+      return n;
+    }
+    playersInc.addEventListener('click', () => {
+      clampPlayers((parseInt(playersCountInput.value || '6', 10) + 1).toString());
+    });
+    playersDec.addEventListener('click', () => {
+      clampPlayers((parseInt(playersCountInput.value || '6', 10) - 1).toString());
+    });
+    playersCountInput.addEventListener('change', () => clampPlayers(playersCountInput.value));
+    playersCountInput.addEventListener('blur', () => clampPlayers(playersCountInput.value));
+  </script>
+</body>
+</html>
+
+

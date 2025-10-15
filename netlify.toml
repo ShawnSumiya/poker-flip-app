@@ -1,0 +1,17 @@
+[build]
+  # 静的サイトのためビルド不要。公開ディレクトリはプロジェクト直下
+  publish = "."
+
+# SPA ではないためリダイレクトは不要ですが、将来的にルーティングを追加した際の参考
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
+
+# PWA/キャッシュ絡みで更新反映が遅い場合は以下を有効化
+# [[headers]]
+#   for = "/sw.js"
+#   [headers.values]
+#     Cache-Control = "no-cache"
+
+

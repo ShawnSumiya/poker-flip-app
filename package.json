@@ -1,0 +1,12 @@
+{
+  "name": "poker-flip-app",
+  "version": "0.1.0",
+  "description": "トランプカードをフリップして表示するシンプルなWebアプリ",
+  "private": true,
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  }
+}
+
+
