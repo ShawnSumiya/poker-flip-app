@@ -233,8 +233,15 @@
     const playersDec = document.getElementById('playersDec');
     
 
+    // インストールボタンを隠すユーティリティ
+    function hideInstallPrompt() {
+      const btn = document.querySelector('button[aria-label="このアプリをホーム画面にインストール"]');
+      if (btn) btn.remove();
+    }
+
     // NLH Flipout events
     startFlipoutBtn.addEventListener('click', async () => {
+      hideInstallPrompt();
       const n = Math.max(2, Math.min(12, parseInt(playersCountInput.value || '6', 10)));
       await startNewHandAnimated({ seatsEl: seats, communityEl: community, statusEl, numPlayers: n });
     });
@@ -242,12 +249,14 @@
     // 手動のフロップ/ターン/リバーは削除（自動進行に一本化）
 
     showdownBtn.addEventListener('click', () => {
+      hideInstallPrompt();
       showdown();
     });
 
 
     // ボードを出す: フロップ→ターン→リバーの自動公開
     revealBoardBtn.addEventListener('click', () => {
+      hideInstallPrompt();
       autoReveal({ flopDelayMs: 600, turnDelayMs: 1000, riverDelayMs: 1000, autoShowdown: false });
     });
 
