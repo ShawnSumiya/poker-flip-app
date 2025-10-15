@@ -1,6 +1,7 @@
 [build]
   # 静的サイトのためビルド不要。公開ディレクトリはプロジェクト直下
   publish = "."
+  functions = "netlify/functions"
 
 # SPA ではないためリダイレクトは不要ですが、将来的にルーティングを追加した際の参考
 # [[redirects]]
