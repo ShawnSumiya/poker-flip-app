@@ -274,14 +274,9 @@
   /* スマホ版コピーライト */
   .copyright {
     font-size: 10px;
-    margin-top: 30px;
-    padding: 30px 0 150px 0;
+    margin-top: 16px;
+    padding: 12px 0 20px 0;
     letter-spacing: 0.3px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    margin-left: -8px;
-    margin-right: -8px;
   }
 }
 
