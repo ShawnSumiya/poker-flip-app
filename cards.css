@@ -271,6 +271,48 @@
     margin-bottom: 8px;
   }
   
+  /* フィードバックフォーム（スマホ版） */
+  .feedback-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.12);
+  }
+  .feedback-footer form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .feedback-footer textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+  }
+  .feedback-footer .feedback-row {
+    display: flex;
+    gap: 6px;
+  }
+  .feedback-footer input[type="email"] {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
   /* スマホ版コピーライト */
   .copyright {
     font-size: 10px;

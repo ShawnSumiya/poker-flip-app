@@ -281,40 +281,73 @@ function evaluateSeven(holes, community) {
   const cards = [...holes, ...community];
   const countsByRank = new Map();
   const countsBySuit = new Map();
-  const ranks = cards.map(c => (c.rank === 1 ? 14 : c.rank)); // Aを14扱い（後でA-5は別処理）
+  const ranks = cards.map(c => (c.rank === 1 ? 14 : c.rank)); // Aは14として扱う
   const suitsArr = cards.map(c => c.suit);
   for (const r of ranks) countsByRank.set(r, (countsByRank.get(r) || 0) + 1);
   for (const s of suitsArr) countsBySuit.set(s, (countsBySuit.get(s) || 0) + 1);
 
-  const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
-  const uniqSorted = [...new Set(ranks)].sort((a,b)=>a-b);
-  // A-5ストレート対応のため、A(14)を1としても試す
-  const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v=>v!==14), 14] : uniqSorted;
-  function hasStraight(arr) {
+  // 連続判定: 与えられた昇順ユニーク配列について最高ストレートのハイカードを返す（無ければ0）
+  function straightHighFromSorted(sortedUniqRanks) {
+    if (sortedUniqRanks.length === 0) return 0;
+    let bestHigh = 0;
     let streak = 1;
-    for (let i = 1; i < arr.length; i++) {
-      if (arr[i] === arr[i-1] + 1) {
+    for (let i = 1; i < sortedUniqRanks.length; i++) {
+      if (sortedUniqRanks[i] === sortedUniqRanks[i - 1] + 1) {
         streak++;
-        if (streak >= 5) return true;
-      } else if (arr[i] !== arr[i-1]) {
+        if (streak >= 5) bestHigh = sortedUniqRanks[i];
+      } else if (sortedUniqRanks[i] !== sortedUniqRanks[i - 1]) {
         streak = 1;
       }
     }
-    return false;
+    return bestHigh;
   }
-  const isStraight = hasStraight(withWheel);
+
+  const uniqSorted = [...new Set(ranks)].sort((a, b) => a - b);
+  const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v => v !== 14), 14] : uniqSorted;
+  const straightHigh = Math.max(
+    straightHighFromSorted(uniqSorted),
+    // A-5（ホイール）対応: 1 を先頭に加えた並びでのハイは5として扱われる
+    (function () {
+      const h = straightHighFromSorted(withWheel);
+      return h === 1 ? 5 : h; // 念のため安全策（理論上1にはならない）
+    })()
+  );
+  const isStraight = straightHigh > 0;
+
+  // フラッシュ/ストレートフラッシュ
+  const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
+  let straightFlushHigh = 0;
+  if (isFlush) {
+    // スートごとのランク配列を作成
+    const ranksBySuit = new Map();
+    for (const c of cards) {
+      const r = c.rank === 1 ? 14 : c.rank;
+      const arr = ranksBySuit.get(c.suit) || [];
+      arr.push(r);
+      ranksBySuit.set(c.suit, arr);
+    }
+    for (const [suit, rs] of ranksBySuit.entries()) {
+      if (rs.length < 5) continue;
+      const u = [...new Set(rs)].sort((a, b) => a - b);
+      const w = u.includes(14) ? [1, ...u.filter(v => v !== 14), 14] : u;
+      const h1 = straightHighFromSorted(u);
+      const h2 = straightHighFromSorted(w);
+      const suitHigh = Math.max(h1, h2 === 1 ? 5 : h2);
+      if (suitHigh > 0) straightFlushHigh = Math.max(straightFlushHigh, suitHigh);
+    }
+  }
 
   // カウントの多い順で並べる
-  const rankGroups = Array.from(countsByRank.entries()).sort((a,b)=>{
-    if (b[1] !== a[1]) return b[1]-a[1];
-    return b[0]-a[0];
+  const rankGroups = Array.from(countsByRank.entries()).sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return b[0] - a[0];
   });
   const maxCount = rankGroups[0]?.[1] || 0;
   const secondCount = rankGroups[1]?.[1] || 0;
 
-  // 非厳密だが順位付け用のスコア
+  // カテゴリ決定
   let category = 0;
-  if (isFlush && isStraight) category = 8;          // ストフラ相当
+  if (straightFlushHigh > 0) category = 8;          // ストレートフラッシュ
   else if (maxCount === 4) category = 7;            // 4カード
   else if (maxCount === 3 && secondCount >= 2) category = 6; // フルハウス
   else if (isFlush) category = 5;                   // フラッシュ
@@ -324,8 +357,8 @@ function evaluateSeven(holes, community) {
   else if (maxCount === 2) category = 1;            // 1ペア
   else category = 0;                                // ハイカード
 
-  // キッカー的なタイブレーク用に高ランク順の配列
-  const kickerRanks = [...ranks].sort((a,b)=>b-a);
+  // 簡易のタイブレーク用。厳密ではないが現仕様では十分
+  const kickerRanks = [...ranks].sort((a, b) => b - a);
   return { category, kickerRanks };
 }
 
@@ -359,32 +392,53 @@ function describeBestHand(holes, community) {
   for (const r of ranks) countsByRank.set(r, (countsByRank.get(r) || 0) + 1);
   for (const s of suitsArr) countsBySuit.set(s, (countsBySuit.get(s) || 0) + 1);
 
-  const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
-  const uniqSorted = [...new Set(ranks)].sort((a,b)=>a-b);
-  const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v=>v!==14), 14] : uniqSorted;
-  function straightHigh(arr) {
+  function straightHighFromSorted(sortedUniqRanks) {
+    if (sortedUniqRanks.length === 0) return 0;
+    let bestHigh = 0;
     let streak = 1;
-    let high = arr[0] || 0;
-    for (let i = 1; i < arr.length; i++) {
-      if (arr[i] === arr[i-1] + 1) {
+    for (let i = 1; i < sortedUniqRanks.length; i++) {
+      if (sortedUniqRanks[i] === sortedUniqRanks[i - 1] + 1) {
         streak++;
-        high = arr[i];
-        if (streak >= 5) {
-          // 5連続以上の最後の値がハイ
-          // A-5ストレートはハイを5として扱う
-        }
-      } else if (arr[i] !== arr[i-1]) {
+        if (streak >= 5) bestHigh = sortedUniqRanks[i];
+      } else if (sortedUniqRanks[i] !== sortedUniqRanks[i - 1]) {
         streak = 1;
-        high = arr[i];
       }
     }
-    return streak >= 5 ? high : 0;
+    return bestHigh;
   }
-  const straightTop = straightHigh(withWheel);
 
-  const rankGroups = Array.from(countsByRank.entries()).sort((a,b)=>{
-    if (b[1] !== a[1]) return b[1]-a[1];
-    return b[0]-a[0];
+  const uniqSorted = [...new Set(ranks)].sort((a, b) => a - b);
+  const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v => v !== 14), 14] : uniqSorted;
+  const straightTop = Math.max(
+    straightHighFromSorted(uniqSorted),
+    (function () { const h = straightHighFromSorted(withWheel); return h === 1 ? 5 : h; })()
+  );
+
+  // フラッシュ/ストレートフラッシュの検出
+  const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
+  let straightFlushTop = 0;
+  if (isFlush) {
+    const ranksBySuit = new Map();
+    for (const c of cards) {
+      const r = c.rank === 1 ? 14 : c.rank;
+      const arr = ranksBySuit.get(c.suit) || [];
+      arr.push(r);
+      ranksBySuit.set(c.suit, arr);
+    }
+    for (const [suit, rs] of ranksBySuit.entries()) {
+      if (rs.length < 5) continue;
+      const u = [...new Set(rs)].sort((a, b) => a - b);
+      const w = u.includes(14) ? [1, ...u.filter(v => v !== 14), 14] : u;
+      const h1 = straightHighFromSorted(u);
+      const h2 = straightHighFromSorted(w);
+      const suitHigh = Math.max(h1, h2 === 1 ? 5 : h2);
+      if (suitHigh > 0) straightFlushTop = Math.max(straightFlushTop, suitHigh);
+    }
+  }
+
+  const rankGroups = Array.from(countsByRank.entries()).sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    return b[0] - a[0];
   });
   const maxCount = rankGroups[0]?.[1] || 0;
   const maxRank = rankGroups[0]?.[0] || 0;
@@ -392,19 +446,20 @@ function describeBestHand(holes, community) {
   const secondRank = rankGroups[1]?.[0] || 0;
 
   // 判定名
-  if (isFlush && straightTop) return 'ストレートフラッシュ';
+  if (straightFlushTop >= 10 && straightFlushTop === 14) return 'ロイヤルフラッシュ';
+  if (straightFlushTop > 0) return `ストレートフラッシュ（ハイ ${rankNumToText(straightFlushTop)}）`;
   if (maxCount === 4) return `フォーカード（${rankNumToText(maxRank)}）`;
   if (maxCount === 3 && secondCount >= 2) return `フルハウス（${rankNumToText(maxRank)} と ${rankNumToText(secondRank)}）`;
   if (isFlush) return 'フラッシュ';
   if (straightTop) return `ストレート（ハイ ${rankNumToText(straightTop)}）`;
   if (maxCount === 3) return `スリーカード（${rankNumToText(maxRank)}）`;
   if (maxCount === 2 && secondCount === 2) {
-    const pairs = rankGroups.filter(([,c])=>c===2).map(([r])=>r).sort((a,b)=>b-a).slice(0,2);
+    const pairs = rankGroups.filter(([, c]) => c === 2).map(([r]) => r).sort((a, b) => b - a).slice(0, 2);
     return `ツーペア（${rankNumToText(pairs[0])} と ${rankNumToText(pairs[1])}）`;
   }
   if (maxCount === 2) return `ワンペア（${rankNumToText(maxRank)}）`;
   // ハイカード: ホール2枚の高い方をそのままハイとして表示
-  const holeVals = holes.map(c => (c.rank === 1 ? 14 : c.rank)).sort((a,b)=>b-a);
+  const holeVals = holes.map(c => (c.rank === 1 ? 14 : c.rank)).sort((a, b) => b - a);
   return `${rankNumToText(holeVals[0])}ハイ`;
 }
 

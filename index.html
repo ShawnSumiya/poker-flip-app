@@ -180,6 +180,19 @@
       © 2025 D.D🐏. All rights reserved.
     </div>
     
+    <!-- フィードバック（不具合/コメント）簡易フォーム -->
+    <div class="feedback-footer" aria-label="フィードバックフォーム">
+      <form name="feedback" method="POST" data-netlify="true" action="/thanks.html">
+        <input type="hidden" name="form-name" value="feedback">
+        <label class="sr-only" for="fb-message">不具合やご意見</label>
+        <textarea id="fb-message" name="message" rows="2" maxlength="500" placeholder="不具合やアプリの感想があればどうぞ（任意）"></textarea>
+        <div class="feedback-row">
+          <input type="email" name="email" placeholder="返信先メール（任意）">
+          <button type="submit" class="btn" aria-label="フィードバックを送信">送信</button>
+        </div>
+      </form>
+    </div>
+    
   </div>
 
   <script type="module" src="./cards.js"></script>
@@ -242,6 +255,79 @@
     window.addEventListener('appinstalled', (evt) => {
       console.log('PWAがインストールされました');
     });
+  </script>
+  
+  <!-- PWAオフライン時のキャッシュ自動クリア＆SW解除（ホーム画面起動時のみ） -->
+  <script>
+    (function setupOfflineAutoClear() {
+      const isStandalone = () => (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true
+      );
+      async function clearCachesAndUnregister() {
+        try {
+          if (window.caches) {
+            const names = await caches.keys();
+            await Promise.all(names.map((n) => caches.delete(n)));
+          }
+        } catch (e) {
+          console.log('Cache clear failed', e);
+        }
+        try {
+          if (navigator.serviceWorker) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+        } catch (e) {
+          console.log('SW unregister failed', e);
+        }
+      }
+      window.addEventListener('offline', async () => {
+        if (!isStandalone()) return;
+        console.log('Offline detected in standalone - clearing caches and unregistering SW');
+        await clearCachesAndUnregister();
+      });
+    })();
+  </script>
+  
+  <!-- 前回未解放セッション検知→次回起動時にキャッシュとSWをクリア（ホーム起動時のみ） -->
+  <script>
+    (function sessionClearOnNextLaunch() {
+      const isStandalone = () => (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true
+      );
+      const SESSION_FLAG = 'pfa_session_open';
+      async function clearAll() {
+        try {
+          if (window.caches) {
+            const names = await caches.keys();
+            await Promise.all(names.map((n) => caches.delete(n)));
+          }
+        } catch (e) { console.log('Cache clear failed', e); }
+        try {
+          if (navigator.serviceWorker) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+        } catch (e) { console.log('SW unregister failed', e); }
+      }
+      document.addEventListener('DOMContentLoaded', async () => {
+        if (!isStandalone()) return;
+        const wasOpen = localStorage.getItem(SESSION_FLAG) === '1';
+        if (wasOpen) {
+          console.log('Previous session not closed - clearing caches and unregistering SW');
+          await clearAll();
+        }
+        localStorage.setItem(SESSION_FLAG, '1');
+      });
+      window.addEventListener('pagehide', () => {
+        if (isStandalone()) localStorage.removeItem(SESSION_FLAG);
+      });
+      window.addEventListener('beforeunload', () => {
+        if (isStandalone()) localStorage.removeItem(SESSION_FLAG);
+      });
+    })();
   </script>
   
   <script type="module">
