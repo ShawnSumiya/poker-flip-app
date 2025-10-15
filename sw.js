@@ -92,7 +92,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: 'ポーカーフリップアプリからの通知です',
     icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    badge: '/icons/icon-192x192.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
