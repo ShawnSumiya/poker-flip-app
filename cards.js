@@ -363,13 +363,13 @@ function evaluateSeven(holes, community) {
 }
 
 function compareHands(aEval, bEval) {
-  if (aEval.category !== bEval.category) return aEval.category - bEval.category;
-  // 同カテゴリーならキッカー順比較
+  if (aEval.category !== bEval.category) return bEval.category - aEval.category; // 降順（強い役が前）
+  // 同カテゴリーならキッカー順比較（高いランクが強い）
   const len = Math.max(aEval.kickerRanks.length, bEval.kickerRanks.length);
   for (let i = 0; i < len; i++) {
     const av = aEval.kickerRanks[i] || 0;
     const bv = bEval.kickerRanks[i] || 0;
-    if (av !== bv) return av - bv;
+    if (av !== bv) return bv - av; // 降順（高いランクが前）
   }
   return 0;
 }
@@ -477,7 +477,7 @@ export function showdown() {
     eval: evaluateSeven(p.hole, gameState.community)
   }));
 
-  evals.sort((a,b)=>compareHands(a.eval,b.eval)).reverse();
+  evals.sort((a,b)=>compareHands(a.eval,b.eval));
   const best = evals[0];
 
   // ハイライト
