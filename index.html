@@ -133,9 +133,9 @@
         <button id="playersInc" class="btn" aria-label="人数を増やす" style="padding:6px 10px; line-height:1;">▲</button>
         <button id="playersDec" class="btn" aria-label="人数を減らす" style="padding:6px 10px; line-height:1;">▼</button>
       </label>
-      <button class="btn" id="startFlipoutBtn">新しいハンド</button>
-      <button class="btn" id="revealBoardBtn">ボードを出す</button>
-      <button class="btn" id="showdownBtn">ショーダウン（役の判定）</button>
+      <button class="btn" id="startFlipoutBtn" aria-label="新しいハンドを開始">新しいハンド</button>
+      <button class="btn" id="revealBoardBtn" aria-label="ボードカードを順に公開">ボードを出す</button>
+      <button class="btn" id="showdownBtn" aria-label="ショーダウンして役を判定">ショーダウン（役の判定）</button>
     </div>
 
     <div id="tableArea">
@@ -187,6 +187,8 @@
       installBtn.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
       installBtn.style.boxShadow = '0 4px 12px rgba(34,197,94,0.4)';
       
+      installBtn.setAttribute('aria-label', 'このアプリをホーム画面にインストール');
+
       installBtn.addEventListener('click', () => {
         if (deferredPrompt) {
           deferredPrompt.prompt();
