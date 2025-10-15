@@ -25,3 +25,5 @@ npm start
 Copyright (C) 2025 D.D Poker Takadanobaba. All Rights Reserved.
 
 
+
+- chore: trigger Netlify redeploy 2025-10-15 22:00:55
