@@ -44,15 +44,13 @@
 .flip-wrap {
   perspective: 1000px;
   -webkit-perspective: 1000px;
-  will-change: transform;
 }
 .flip-inner {
   position: relative;
   width: 100px; height: 140px;
-  transition: transform 0.5s ease-in-out;
+  transition: transform 0.3s ease-out;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
-  will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -66,7 +64,6 @@
   border-radius: 15px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  will-change: transform;
 }
 .card-front { /* 表: 通常のカード */ }
 .card-back {
@@ -112,14 +109,11 @@
 
 /* ディール（配り）演出 */
 @keyframes deal-card {
-  0% { transform: translateY(-20px) scale(0.9); opacity: 0; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+  0% { transform: translateY(-10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 .dealing {
-  animation: deal-card 260ms ease-out both;
-  will-change: transform, opacity;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  animation: deal-card 200ms ease-out both;
 }
 
 /* バーンカード置き場 */
@@ -189,17 +183,13 @@
 
 /* --- 出現演出（フロップ/ターン/リバー） --- */
 @keyframes pop-in-card {
-  0% { transform: scale(0.85) translateZ(0); opacity: 0; }
-  60% { transform: scale(1.05) translateZ(0); opacity: 1; }
-  100% { transform: scale(1) translateZ(0); opacity: 1; }
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* 新規公開カードに付与されるラベル */
 .board-row .flip-wrap.newly-dealt .flip-inner {
-  animation: pop-in-card 400ms ease-out both;
-  will-change: transform, opacity;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  animation: pop-in-card 300ms ease-out both;
 }
 
 @media (max-width: 768px) {
@@ -207,22 +197,25 @@
   .flip-inner { width: 60px; height: 84px; }
   .cute-card .corner-top .rank, .cute-card .corner-bottom .rank { font-size: 16px; }
   .cute-card .center-suit { font-size: 30px; }
+  
+  /* タブレット・スマホ共通のスクロール最適化 */
+  .container {
+    max-height: none !important;
+    min-height: auto !important;
+  }
 }
 
 /* スマホ最適化（小型端末想定） */
 @media (max-width: 480px) {
-  body { 
-    padding: 12px;
-    position: fixed;
-    overflow: hidden;
-  }
-
   .container { 
     padding: 16px; 
     border-radius: 12px;
-    max-height: 100vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    max-height: none !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    margin: 0 auto;
+    max-width: 100%;
+    width: 100%;
   }
 
   .toolbar { gap: 8px; }
@@ -243,14 +236,11 @@
     height: 72px; 
     min-width: 52px; 
     min-height: 72px;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+    contain: layout style;
   }
   .flip-inner { 
     width: 52px; 
     height: 72px;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
   }
   .cute-card .corner-top .rank, .cute-card .corner-bottom .rank { font-size: 14px; }
   .cute-card .center-suit { font-size: 26px; }
@@ -261,25 +251,41 @@
     letter-spacing: 0.5px;
   }
 
-  /* 座席エリアは2列にし、読みやすく */
-  .seats { grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 8px; }
-  .seat { 
-    padding: 6px; 
-    border-radius: 10px;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+  /* 座席エリアは人数に応じて最適化 */
+  .seats { 
+    grid-template-columns: repeat(2, minmax(110px, 1fr)); 
+    gap: 6px;
+    margin-bottom: 16px;
   }
-  .seat .name { font-size: 12px; margin-bottom: 4px; }
-  .hole { gap: 6px; }
+  
+  /* 6人以上の場合、3列表示に変更 */
+  .seats.many-players {
+    grid-template-columns: repeat(3, minmax(100px, 1fr));
+  }
+  
+  .seat { 
+    padding: 5px; 
+    border-radius: 8px;
+  }
+  .seat .name { font-size: 11px; margin-bottom: 3px; }
+  .hole { gap: 4px; }
 
-  .status { font-size: 12px; }
+  .status { 
+    font-size: 12px; 
+    margin-bottom: 8px;
+  }
   
   /* スマホ版コピーライト */
   .copyright {
     font-size: 10px;
-    margin-top: 12px;
-    padding-top: 8px;
+    margin-top: 30px;
+    padding: 30px 0 150px 0;
     letter-spacing: 0.3px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    margin-left: -8px;
+    margin-right: -8px;
   }
 }
 

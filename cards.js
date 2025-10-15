@@ -143,6 +143,14 @@ function renderSeats() {
   const { seatsEl } = gameState;
   if (!seatsEl) return;
   seatsEl.innerHTML = '';
+  
+  // 人数に応じてクラスを設定
+  if (gameState.players.length >= 6) {
+    seatsEl.classList.add('many-players');
+  } else {
+    seatsEl.classList.remove('many-players');
+  }
+  
   const zodiacEmojis = ['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐐','🐵','🐔','🐶','🐗'];
   const zodiacNames  = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   gameState.players.forEach((p, idx) => {

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=3.0, minimum-scale=0.5">
   <title>Poker Flip App</title>
   <meta name="description" content="トランプカードをフリップして表示するミニアプリ">
   
@@ -26,6 +26,12 @@
   
   <link rel="stylesheet" href="./cards.css">
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    
     * {
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
@@ -48,6 +54,28 @@
       padding: 24px;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: scroll-position;
+    }
+    
+    /* スマホ版では完全に異なるレイアウト */
+    @media (max-width: 768px) {
+      body {
+        display: block !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        padding: 12px !important;
+        min-height: 100vh !important;
+      }
+      
+      .container {
+        margin: 0 !important;
+        max-width: 100% !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        padding-bottom: 100px !important;
+      }
     }
 
     .container {
@@ -223,6 +251,32 @@
     const seats = document.getElementById('seats');
     const community = document.getElementById('community');
     const statusEl = document.getElementById('status');
+    
+    // スマホでのスクロール問題を強制的に解決
+    function ensureMobileScroll() {
+      if (window.innerWidth <= 768) {
+        document.body.style.display = 'block';
+        document.body.style.alignItems = 'stretch';
+        document.body.style.justifyContent = 'flex-start';
+        document.body.style.minHeight = '100vh';
+        
+        const container = document.querySelector('.container');
+        if (container) {
+          container.style.margin = '0';
+          container.style.maxWidth = '100%';
+          container.style.paddingBottom = '100px';
+        }
+        
+        // 強制的にスクロール可能にする
+        document.documentElement.style.height = 'auto';
+        document.body.style.height = 'auto';
+        document.body.style.maxHeight = 'none';
+      }
+    }
+    
+    // ページ読み込み時とリサイズ時に実行
+    ensureMobileScroll();
+    window.addEventListener('resize', ensureMobileScroll);
 
     // NLH Flipout controls
     const playersCountInput = document.getElementById('playersCount');
