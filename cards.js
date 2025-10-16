@@ -299,6 +299,8 @@ function evaluateSeven(holes, community) {
     generateCombos(cards, 0, []);
     
     // デバッグ: カード数と組み合わせ数を確認
+    console.log('Cards:', cards.length, cards);
+    console.log('Combinations:', combinations.length);
     if (cards.length < 7) {
       console.error('Not enough cards:', cards.length, cards);
     }
@@ -348,6 +350,10 @@ function evaluateSeven(holes, community) {
   
   // 5枚のカードを評価してスコアを返す
   function evaluateFiveCards(fiveCards) {
+    if (!fiveCards || !Array.isArray(fiveCards)) {
+      console.error('evaluateFiveCards: invalid input', fiveCards);
+      return { category: 0, kickerRanks: [0] };
+    }
     const ranks = fiveCards.map(c => c.rank === 1 ? 14 : c.rank);
     const suits = fiveCards.map(c => c.suit);
     
@@ -474,6 +480,8 @@ function describeBestHand(holes, community) {
     generateCombos(cards, 0, []);
     
     // デバッグ: カード数と組み合わせ数を確認
+    console.log('Cards:', cards.length, cards);
+    console.log('Combinations:', combinations.length);
     if (cards.length < 7) {
       console.error('Not enough cards:', cards.length, cards);
     }
