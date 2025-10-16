@@ -298,6 +298,14 @@ function evaluateSeven(holes, community) {
     
     generateCombos(cards, 0, []);
     
+    // デバッグ: カード数と組み合わせ数を確認
+    if (cards.length < 7) {
+      console.error('Not enough cards:', cards.length, cards);
+    }
+    if (combinations.length === 0) {
+      console.error('No combinations generated');
+    }
+    
     let best = null;
     let bestScore = -1;
     
@@ -464,6 +472,14 @@ function describeBestHand(holes, community) {
     }
     
     generateCombos(cards, 0, []);
+    
+    // デバッグ: カード数と組み合わせ数を確認
+    if (cards.length < 7) {
+      console.error('Not enough cards:', cards.length, cards);
+    }
+    if (combinations.length === 0) {
+      console.error('No combinations generated');
+    }
     
     let best = null;
     let bestScore = -1;
