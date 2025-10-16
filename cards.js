@@ -303,7 +303,11 @@ function evaluateSeven(holes, community) {
     
     for (const combo of combinations) {
       const handEval = evaluateFiveCards(combo);
-      const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
+      // より詳細なスコアリング（カテゴリ + キッカーランク）
+      let score = handEval.category * 1000000;
+      for (let i = 0; i < handEval.kickerRanks.length; i++) {
+        score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+      }
       if (score >= bestScore) {
         bestScore = score;
         best = combo;
@@ -449,7 +453,11 @@ function describeBestHand(holes, community) {
     
     for (const combo of combinations) {
       const handEval = evaluateFiveCards(combo);
-      const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
+      // より詳細なスコアリング（カテゴリ + キッカーランク）
+      let score = handEval.category * 1000000;
+      for (let i = 0; i < handEval.kickerRanks.length; i++) {
+        score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+      }
       if (score >= bestScore) {
         bestScore = score;
         best = combo;
