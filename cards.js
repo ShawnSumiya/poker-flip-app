@@ -310,6 +310,10 @@ function evaluateSeven(holes, community) {
       }
     }
     
+    if (!best) {
+      // フォールバック: 最初の5枚を使用
+      best = cards.slice(0, 5);
+    }
     return evaluateFiveCards(best);
   }
   
