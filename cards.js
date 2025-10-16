@@ -582,6 +582,12 @@ function describeBestHand(holes, community) {
   const handEval = evaluateFiveCards(bestFive);
   const rankCounts = handEval.rankCounts;
   
+  // デバッグ: エラー確認
+  if (!handEval || !rankCounts) {
+    console.error('describeBestHand error:', { handEval, rankCounts });
+    return 'エラー';
+  }
+  
   const sortedRanks = handEval.sortedRanks;
   const isStraight = handEval.isStraight;
 
