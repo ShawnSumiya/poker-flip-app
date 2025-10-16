@@ -302,7 +302,8 @@ function evaluateSeven(holes, community) {
     let bestScore = -1;
     
     for (const combo of combinations) {
-      const score = evaluateFiveCards(combo);
+      const handEval = evaluateFiveCards(combo);
+      const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
       if (score > bestScore) {
         bestScore = score;
         best = combo;
