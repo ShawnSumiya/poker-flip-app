@@ -308,9 +308,11 @@ function evaluateSeven(holes, community) {
       if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
         // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー
         score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
+        console.log('Two pair score:', score, 'kickerRanks:', handEval.kickerRanks);
       } else {
         // その他: カテゴリ + 最初のキッカー
         score += (handEval.kickerRanks[0] || 0) * 1000;
+        console.log('Other hand score:', score, 'category:', handEval.category, 'kickerRanks:', handEval.kickerRanks);
       }
       
       if (score > bestScore) {
@@ -469,9 +471,11 @@ function describeBestHand(holes, community) {
       if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
         // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー
         score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
+        console.log('Two pair score:', score, 'kickerRanks:', handEval.kickerRanks);
       } else {
         // その他: カテゴリ + 最初のキッカー
         score += (handEval.kickerRanks[0] || 0) * 1000;
+        console.log('Other hand score:', score, 'category:', handEval.category, 'kickerRanks:', handEval.kickerRanks);
       }
       
       if (score > bestScore) {
