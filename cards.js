@@ -502,7 +502,35 @@ function describeBestHand(holes, community) {
       category = 0;
     }
     
-    return { category, rankCounts, sortedRanks, isStraight };
+    // キッカーランク（比較用）
+    let kickerRanks;
+    
+    if (category === 4) {
+      // ストレート: ハイカードで比較
+      if (sortedRanks[0] === 2 && sortedRanks[4] === 14) {
+        kickerRanks = [5]; // A-2-3-4-5のハイは5
+      } else {
+        kickerRanks = [sortedRanks[4]]; // 通常のストレートのハイ
+      }
+    } else if (category === 2) {
+      // ツーペア: 高いペア、低いペア、キッカーの順
+      const pairs = Object.entries(rankCounts).filter(([, count]) => count === 2)
+        .map(([rank]) => parseInt(rank)).sort((a, b) => b - a);
+      const kickers = Object.entries(rankCounts).filter(([, count]) => count === 1)
+        .map(([rank]) => parseInt(rank)).sort((a, b) => b - a);
+      kickerRanks = [...pairs, ...kickers];
+    } else if (category === 1) {
+      // ワンペア: ペア、キッカー3枚の順
+      const pair = Object.entries(rankCounts).find(([, count]) => count === 2);
+      const kickers = Object.entries(rankCounts).filter(([, count]) => count === 1)
+        .map(([rank]) => parseInt(rank)).sort((a, b) => b - a);
+      kickerRanks = [parseInt(pair[0]), ...kickers];
+    } else {
+      // その他: ランクの降順
+      kickerRanks = [...ranks].sort((a, b) => b - a);
+    }
+    
+    return { category, rankCounts, sortedRanks, isStraight, kickerRanks };
   }
   
   const bestFive = findBestFiveCards();
