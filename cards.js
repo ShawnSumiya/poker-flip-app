@@ -345,11 +345,14 @@ function evaluateSeven(holes, community) {
   const maxCount = rankGroups[0]?.[1] || 0;
   const secondCount = rankGroups[1]?.[1] || 0;
 
+  // フルハウス判定（3枚+2枚の組み合わせを正しく識別）
+  const hasFullHouse = maxCount === 3 && secondCount >= 2;
+
   // カテゴリ決定
   let category = 0;
   if (straightFlushHigh > 0) category = 8;          // ストレートフラッシュ
   else if (maxCount === 4) category = 7;            // 4カード
-  else if (maxCount === 3 && secondCount >= 2) category = 6; // フルハウス
+  else if (hasFullHouse) category = 6;              // フルハウス
   else if (isFlush) category = 5;                   // フラッシュ
   else if (isStraight) category = 4;                // ストレート
   else if (maxCount === 3) category = 3;            // 3カード
