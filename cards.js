@@ -304,7 +304,7 @@ function evaluateSeven(holes, community) {
     for (const combo of combinations) {
       const handEval = evaluateFiveCards(combo);
       const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
-      if (score > bestScore) {
+      if (score >= bestScore) {
         bestScore = score;
         best = combo;
       }
@@ -449,7 +449,7 @@ function describeBestHand(holes, community) {
     for (const combo of combinations) {
       const handEval = evaluateFiveCards(combo);
       const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
-      if (score > bestScore) {
+      if (score >= bestScore) {
         bestScore = score;
         best = combo;
       }
