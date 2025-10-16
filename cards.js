@@ -306,13 +306,17 @@ function evaluateSeven(holes, community) {
       // より詳細なスコアリング（ツーペアの場合、低いペアも考慮）
       let score = handEval.category * 10000;
       if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
-        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー
+        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー + ボーナス
         score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
-        console.log('Two pair score:', score, 'kickerRanks:', handEval.kickerRanks);
+        score += 10000; // ツーペアにボーナスを追加（スリーカードより高くする）
+      } else if (handEval.category === 5) {
+        // フラッシュ: 全キッカーランクを考慮
+        for (let i = 0; i < handEval.kickerRanks.length; i++) {
+          score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+        }
       } else {
         // その他: カテゴリ + 最初のキッカー
         score += (handEval.kickerRanks[0] || 0) * 1000;
-        console.log('Other hand score:', score, 'category:', handEval.category, 'kickerRanks:', handEval.kickerRanks);
       }
       
       if (score > bestScore) {
@@ -469,13 +473,17 @@ function describeBestHand(holes, community) {
       // より詳細なスコアリング（ツーペアの場合、低いペアも考慮）
       let score = handEval.category * 10000;
       if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
-        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー
+        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー + ボーナス
         score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
-        console.log('Two pair score:', score, 'kickerRanks:', handEval.kickerRanks);
+        score += 10000; // ツーペアにボーナスを追加（スリーカードより高くする）
+      } else if (handEval.category === 5) {
+        // フラッシュ: 全キッカーランクを考慮
+        for (let i = 0; i < handEval.kickerRanks.length; i++) {
+          score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+        }
       } else {
         // その他: カテゴリ + 最初のキッカー
         score += (handEval.kickerRanks[0] || 0) * 1000;
-        console.log('Other hand score:', score, 'category:', handEval.category, 'kickerRanks:', handEval.kickerRanks);
       }
       
       if (score > bestScore) {
@@ -574,8 +582,6 @@ function describeBestHand(holes, community) {
   const handEval = evaluateFiveCards(bestFive);
   const rankCounts = handEval.rankCounts;
   
-  // デバッグ: 最強の5枚をコンソールに出力
-  console.log('Best 5 cards:', bestFive.map(c => `${c.rank === 1 ? 'A' : c.rank === 11 ? 'J' : c.rank === 12 ? 'Q' : c.rank === 13 ? 'K' : c.rank}${c.suit}`));
   const sortedRanks = handEval.sortedRanks;
   const isStraight = handEval.isStraight;
 
@@ -583,7 +589,13 @@ function describeBestHand(holes, community) {
   const counts = Object.values(rankCounts).sort((a, b) => b - a);
 
   if (handEval.category === 8) {
-    return 'ロイヤルフラッシュ';
+    // ロイヤルフラッシュかストレートフラッシュかを判定
+    const high = sortedRanks[0] === 2 && sortedRanks[4] === 14 ? 5 : sortedRanks[4];
+    if (high === 14) {
+      return 'ロイヤルフラッシュ';
+    } else {
+      return `ストレートフラッシュ（ハイ ${rankNumToText(high)}）`;
+    }
   } else if (handEval.category === 7) {
     const fourOf = Object.entries(rankCounts).find(([, count]) => count === 4);
     return `フォーカード（${rankNumToText(parseInt(fourOf[0]))}）`;
