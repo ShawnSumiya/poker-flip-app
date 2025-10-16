@@ -303,7 +303,16 @@ function evaluateSeven(holes, community) {
     
     for (const combo of combinations) {
       const handEval = evaluateFiveCards(combo);
-      const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
+      // より詳細なスコアリング（ツーペアの場合、低いペアも考慮）
+      let score = handEval.category * 10000;
+      if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
+        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー
+        score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
+      } else {
+        // その他: カテゴリ + 最初のキッカー
+        score += (handEval.kickerRanks[0] || 0) * 1000;
+      }
+      
       if (score > bestScore) {
         bestScore = score;
         best = combo;
@@ -455,7 +464,16 @@ function describeBestHand(holes, community) {
     
     for (const combo of combinations) {
       const handEval = evaluateFiveCards(combo);
-      const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
+      // より詳細なスコアリング（ツーペアの場合、低いペアも考慮）
+      let score = handEval.category * 10000;
+      if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
+        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー
+        score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
+      } else {
+        // その他: カテゴリ + 最初のキッカー
+        score += (handEval.kickerRanks[0] || 0) * 1000;
+      }
+      
       if (score > bestScore) {
         bestScore = score;
         best = combo;
@@ -551,6 +569,9 @@ function describeBestHand(holes, community) {
   const bestFive = findBestFiveCards();
   const handEval = evaluateFiveCards(bestFive);
   const rankCounts = handEval.rankCounts;
+  
+  // デバッグ: 最強の5枚をコンソールに出力
+  console.log('Best 5 cards:', bestFive.map(c => `${c.rank === 1 ? 'A' : c.rank === 11 ? 'J' : c.rank === 12 ? 'Q' : c.rank === 13 ? 'K' : c.rank}${c.suit}`));
   const sortedRanks = handEval.sortedRanks;
   const isStraight = handEval.isStraight;
 
