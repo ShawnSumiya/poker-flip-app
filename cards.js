@@ -593,18 +593,32 @@ export function showdown() {
   evals.sort((a,b)=>compareHands(a.eval,b.eval));
   const best = evals[0];
 
+  // チョップ検出
+  const winners = evals.filter(e => compareHands(e.eval, best.eval) === 0);
+
   // ハイライト
   gameState.players.forEach((p, i) => {
-    p.seatEl.classList.toggle('winner', i === best.idx);
+    p.seatEl.classList.toggle('winner', winners.some(w => w.idx === i));
   });
 
   // 勝者名を干支表記で表示
   const zodiacEmojis = ['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐐','🐵','🐔','🐶','🐗'];
   const zodiacNames  = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-  const zi = best.idx % zodiacEmojis.length;
-  const bestPlayer = gameState.players[best.idx];
-  const desc = describeBestHand(bestPlayer.hole, gameState.community);
-  setStatus(`${zodiacEmojis[zi]}（${zodiacNames[zi]}）の勝ち！ ${desc}`);
+  
+  if (winners.length === 1) {
+    const zi = best.idx % zodiacEmojis.length;
+    const bestPlayer = gameState.players[best.idx];
+    const desc = describeBestHand(bestPlayer.hole, gameState.community);
+    setStatus(`${zodiacEmojis[zi]}（${zodiacNames[zi]}）の勝ち！ ${desc}`);
+  } else {
+    // チョップ
+    const desc = describeBestHand(gameState.players[best.idx].hole, gameState.community);
+    const winnerNames = winners.map(w => {
+      const zi = w.idx % zodiacEmojis.length;
+      return `${zodiacEmojis[zi]}（${zodiacNames[zi]}）`;
+    }).join('と');
+    setStatus(`${winnerNames}のチョップ！ ${desc}`);
+  }
 }
 
 export function nextHand(numPlayers) {
