@@ -279,90 +279,130 @@ export function flipStreet(street) {
 // 強さ順: ロイヤル/ストレートフラッシュ > 4カード > フルハウス > フラッシュ > ストレート > 3カード > 2ペア > 1ペア > ハイカード
 function evaluateSeven(holes, community) {
   const cards = [...holes, ...community];
-  const countsByRank = new Map();
-  const countsBySuit = new Map();
-  const ranks = cards.map(c => (c.rank === 1 ? 14 : c.rank)); // Aは14として扱う
-  const suitsArr = cards.map(c => c.suit);
-  for (const r of ranks) countsByRank.set(r, (countsByRank.get(r) || 0) + 1);
-  for (const s of suitsArr) countsBySuit.set(s, (countsBySuit.get(s) || 0) + 1);
-
-  // 連続判定: 与えられた昇順ユニーク配列について最高ストレートのハイカードを返す（無ければ0）
-  function straightHighFromSorted(sortedUniqRanks) {
-    if (sortedUniqRanks.length === 0) return 0;
-    let bestHigh = 0;
-    let streak = 1;
-    for (let i = 1; i < sortedUniqRanks.length; i++) {
-      if (sortedUniqRanks[i] === sortedUniqRanks[i - 1] + 1) {
-        streak++;
-        if (streak >= 5) bestHigh = sortedUniqRanks[i];
-      } else if (sortedUniqRanks[i] !== sortedUniqRanks[i - 1]) {
-        streak = 1;
+  
+  // 7枚中から最強の5枚の組み合わせを探す
+  function findBestFiveCards(cards) {
+    const allCombinations = [];
+    
+    // 7枚から5枚を選ぶ組み合わせを生成
+    function generateCombinations(arr, start, current) {
+      if (current.length === 5) {
+        allCombinations.push([...current]);
+        return;
+      }
+      for (let i = start; i < arr.length; i++) {
+        current.push(arr[i]);
+        generateCombinations(arr, i + 1, current);
+        current.pop();
       }
     }
-    return bestHigh;
-  }
-
-  const uniqSorted = [...new Set(ranks)].sort((a, b) => a - b);
-  const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v => v !== 14), 14] : uniqSorted;
-  const straightHigh = Math.max(
-    straightHighFromSorted(uniqSorted),
-    // A-5（ホイール）対応: 1 を先頭に加えた並びでのハイは5として扱われる
-    (function () {
-      const h = straightHighFromSorted(withWheel);
-      return h === 1 ? 5 : h; // 念のため安全策（理論上1にはならない）
-    })()
-  );
-  const isStraight = straightHigh > 0;
-
-  // フラッシュ/ストレートフラッシュ
-  const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
-  let straightFlushHigh = 0;
-  if (isFlush) {
-    // スートごとのランク配列を作成
-    const ranksBySuit = new Map();
-    for (const c of cards) {
-      const r = c.rank === 1 ? 14 : c.rank;
-      const arr = ranksBySuit.get(c.suit) || [];
-      arr.push(r);
-      ranksBySuit.set(c.suit, arr);
+    
+    generateCombinations(cards, 0, []);
+    
+    let bestHand = null;
+    let bestCategory = -1;
+    
+    for (const combo of allCombinations) {
+      const handEval = evaluateFiveCards(combo);
+      if (handEval.category > bestCategory) {
+        bestCategory = handEval.category;
+        bestHand = handEval;
+      }
     }
-    for (const [suit, rs] of ranksBySuit.entries()) {
-      if (rs.length < 5) continue;
-      const u = [...new Set(rs)].sort((a, b) => a - b);
-      const w = u.includes(14) ? [1, ...u.filter(v => v !== 14), 14] : u;
-      const h1 = straightHighFromSorted(u);
-      const h2 = straightHighFromSorted(w);
-      const suitHigh = Math.max(h1, h2 === 1 ? 5 : h2);
-      if (suitHigh > 0) straightFlushHigh = Math.max(straightFlushHigh, suitHigh);
-    }
+    
+    return bestHand;
   }
+  
+  // 5枚のカードを評価
+  function evaluateFiveCards(fiveCards) {
+    const countsByRank = new Map();
+    const countsBySuit = new Map();
+    const ranks = fiveCards.map(c => (c.rank === 1 ? 14 : c.rank));
+    const suitsArr = fiveCards.map(c => c.suit);
+    for (const r of ranks) countsByRank.set(r, (countsByRank.get(r) || 0) + 1);
+    for (const s of suitsArr) countsBySuit.set(s, (countsBySuit.get(s) || 0) + 1);
 
-  // カウントの多い順で並べる
-  const rankGroups = Array.from(countsByRank.entries()).sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1];
-    return b[0] - a[0];
-  });
-  const maxCount = rankGroups[0]?.[1] || 0;
-  const secondCount = rankGroups[1]?.[1] || 0;
+    // 連続判定: 与えられた昇順ユニーク配列について最高ストレートのハイカードを返す（無ければ0）
+    function straightHighFromSorted(sortedUniqRanks) {
+      if (sortedUniqRanks.length === 0) return 0;
+      let bestHigh = 0;
+      let streak = 1;
+      for (let i = 1; i < sortedUniqRanks.length; i++) {
+        if (sortedUniqRanks[i] === sortedUniqRanks[i - 1] + 1) {
+          streak++;
+          if (streak >= 5) bestHigh = sortedUniqRanks[i];
+        } else if (sortedUniqRanks[i] !== sortedUniqRanks[i - 1]) {
+          streak = 1;
+        }
+      }
+      return bestHigh;
+    }
 
-  // フルハウス判定（3枚+2枚の組み合わせを正しく識別）
-  const hasFullHouse = maxCount === 3 && secondCount >= 2;
+    const uniqSorted = [...new Set(ranks)].sort((a, b) => a - b);
+    const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v => v !== 14), 14] : uniqSorted;
+    const straightHigh = Math.max(
+      straightHighFromSorted(uniqSorted),
+      // A-5（ホイール）対応: 1 を先頭に加えた並びでのハイは5として扱われる
+      (function () {
+        const h = straightHighFromSorted(withWheel);
+        return h === 1 ? 5 : h; // 念のため安全策（理論上1にはならない）
+      })()
+    );
+    const isStraight = straightHigh > 0;
 
-  // カテゴリ決定
-  let category = 0;
-  if (straightFlushHigh > 0) category = 8;          // ストレートフラッシュ
-  else if (maxCount === 4) category = 7;            // 4カード
-  else if (hasFullHouse) category = 6;              // フルハウス
-  else if (isFlush) category = 5;                   // フラッシュ
-  else if (isStraight) category = 4;                // ストレート
-  else if (maxCount === 3) category = 3;            // 3カード
-  else if (maxCount === 2 && secondCount === 2) category = 2; // 2ペア
-  else if (maxCount === 2) category = 1;            // 1ペア
-  else category = 0;                                // ハイカード
+    // フラッシュ/ストレートフラッシュ
+    const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
+    let straightFlushHigh = 0;
+    if (isFlush) {
+      // スートごとのランク配列を作成
+      const ranksBySuit = new Map();
+      for (const c of fiveCards) {
+        const r = c.rank === 1 ? 14 : c.rank;
+        const arr = ranksBySuit.get(c.suit) || [];
+        arr.push(r);
+        ranksBySuit.set(c.suit, arr);
+      }
+      for (const [suit, rs] of ranksBySuit.entries()) {
+        if (rs.length < 5) continue;
+        const u = [...new Set(rs)].sort((a, b) => a - b);
+        const w = u.includes(14) ? [1, ...u.filter(v => v !== 14), 14] : u;
+        const h1 = straightHighFromSorted(u);
+        const h2 = straightHighFromSorted(w);
+        const suitHigh = Math.max(h1, h2 === 1 ? 5 : h2);
+        if (suitHigh > 0) straightFlushHigh = Math.max(straightFlushHigh, suitHigh);
+      }
+    }
 
-  // 簡易のタイブレーク用。厳密ではないが現仕様では十分
-  const kickerRanks = [...ranks].sort((a, b) => b - a);
-  return { category, kickerRanks };
+    // カウントの多い順で並べる
+    const rankGroups = Array.from(countsByRank.entries()).sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return b[0] - a[0];
+    });
+    const maxCount = rankGroups[0]?.[1] || 0;
+    const secondCount = rankGroups[1]?.[1] || 0;
+
+    // フルハウス判定（3枚+2枚の組み合わせを正しく識別）
+    const hasFullHouse = maxCount === 3 && secondCount >= 2;
+
+    // カテゴリ決定
+    let category = 0;
+    if (straightFlushHigh > 0) category = 8;          // ストレートフラッシュ
+    else if (maxCount === 4) category = 7;            // 4カード
+    else if (hasFullHouse) category = 6;              // フルハウス
+    else if (isFlush) category = 5;                   // フラッシュ
+    else if (isStraight) category = 4;                // ストレート
+    else if (maxCount === 3) category = 3;            // 3カード
+    else if (maxCount === 2 && secondCount === 2) category = 2; // 2ペア
+    else if (maxCount === 2) category = 1;            // 1ペア
+    else category = 0;                                // ハイカード
+
+    // 簡易のタイブレーク用。厳密ではないが現仕様では十分
+    const kickerRanks = [...ranks].sort((a, b) => b - a);
+    return { category, kickerRanks };
+  }
+  
+  // 最強の5枚の組み合わせを探して評価結果を返す
+  return findBestFiveCards(cards);
 }
 
 function compareHands(aEval, bEval) {
