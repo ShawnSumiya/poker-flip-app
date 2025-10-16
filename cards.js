@@ -339,8 +339,9 @@ function evaluateSeven(holes, community) {
     if (sortedRanks.length === 5) {
       if (sortedRanks[4] - sortedRanks[0] === 4) {
         isStraight = true;
-      } else if (sortedRanks[0] === 2 && sortedRanks[4] === 14) {
-        // A-2-3-4-5
+      } else if (sortedRanks[0] === 2 && sortedRanks[4] === 14 && 
+                 sortedRanks[1] === 3 && sortedRanks[2] === 4 && sortedRanks[3] === 5) {
+        // A-2-3-4-5（正確な判定）
         isStraight = true;
       }
     }
@@ -476,7 +477,9 @@ function describeBestHand(holes, community) {
     if (sortedRanks.length === 5) {
       if (sortedRanks[4] - sortedRanks[0] === 4) {
         isStraight = true;
-      } else if (sortedRanks[0] === 2 && sortedRanks[4] === 14) {
+      } else if (sortedRanks[0] === 2 && sortedRanks[4] === 14 && 
+                 sortedRanks[1] === 3 && sortedRanks[2] === 4 && sortedRanks[3] === 5) {
+        // A-2-3-4-5（正確な判定）
         isStraight = true;
       }
     }
