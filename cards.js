@@ -423,83 +423,126 @@ function rankNumToText(n) {
 }
 
 function describeBestHand(holes, community) {
+  // evaluateSevenと同じロジックを使用して最強の5枚を特定
   const cards = [...holes, ...community];
-  const countsByRank = new Map();
-  const countsBySuit = new Map();
-  const ranks = cards.map(c => (c.rank === 1 ? 14 : c.rank));
-  const suitsArr = cards.map(c => c.suit);
-  for (const r of ranks) countsByRank.set(r, (countsByRank.get(r) || 0) + 1);
-  for (const s of suitsArr) countsBySuit.set(s, (countsBySuit.get(s) || 0) + 1);
-
-  function straightHighFromSorted(sortedUniqRanks) {
-    if (sortedUniqRanks.length === 0) return 0;
-    let bestHigh = 0;
-    let streak = 1;
-    for (let i = 1; i < sortedUniqRanks.length; i++) {
-      if (sortedUniqRanks[i] === sortedUniqRanks[i - 1] + 1) {
-        streak++;
-        if (streak >= 5) bestHigh = sortedUniqRanks[i];
-      } else if (sortedUniqRanks[i] !== sortedUniqRanks[i - 1]) {
-        streak = 1;
+  
+  function findBestFiveCards() {
+    const combinations = [];
+    
+    function generateCombos(arr, start, current) {
+      if (current.length === 5) {
+        combinations.push([...current]);
+        return;
+      }
+      for (let i = start; i < arr.length; i++) {
+        current.push(arr[i]);
+        generateCombos(arr, i + 1, current);
+        current.pop();
       }
     }
-    return bestHigh;
-  }
-
-  const uniqSorted = [...new Set(ranks)].sort((a, b) => a - b);
-  const withWheel = uniqSorted.includes(14) ? [1, ...uniqSorted.filter(v => v !== 14), 14] : uniqSorted;
-  const straightTop = Math.max(
-    straightHighFromSorted(uniqSorted),
-    (function () { const h = straightHighFromSorted(withWheel); return h === 1 ? 5 : h; })()
-  );
-
-  // フラッシュ/ストレートフラッシュの検出
-  const isFlush = Array.from(countsBySuit.values()).some(v => v >= 5);
-  let straightFlushTop = 0;
-  if (isFlush) {
-    const ranksBySuit = new Map();
-    for (const c of cards) {
-      const r = c.rank === 1 ? 14 : c.rank;
-      const arr = ranksBySuit.get(c.suit) || [];
-      arr.push(r);
-      ranksBySuit.set(c.suit, arr);
+    
+    generateCombos(cards, 0, []);
+    
+    let best = null;
+    let bestScore = -1;
+    
+    for (const combo of combinations) {
+      const handEval = evaluateFiveCards(combo);
+      const score = handEval.category * 1000 + (handEval.kickerRanks[0] || 0);
+      if (score > bestScore) {
+        bestScore = score;
+        best = combo;
+      }
     }
-    for (const [suit, rs] of ranksBySuit.entries()) {
-      if (rs.length < 5) continue;
-      const u = [...new Set(rs)].sort((a, b) => a - b);
-      const w = u.includes(14) ? [1, ...u.filter(v => v !== 14), 14] : u;
-      const h1 = straightHighFromSorted(u);
-      const h2 = straightHighFromSorted(w);
-      const suitHigh = Math.max(h1, h2 === 1 ? 5 : h2);
-      if (suitHigh > 0) straightFlushTop = Math.max(straightFlushTop, suitHigh);
-    }
+    
+    return best || cards.slice(0, 5);
   }
+  
+  function evaluateFiveCards(fiveCards) {
+    const ranks = fiveCards.map(c => c.rank === 1 ? 14 : c.rank);
+    const suits = fiveCards.map(c => c.suit);
+    
+    const rankCounts = {};
+    ranks.forEach(r => rankCounts[r] = (rankCounts[r] || 0) + 1);
+    
+    const suitCounts = {};
+    suits.forEach(s => suitCounts[s] = (suitCounts[s] || 0) + 1);
+    
+    const counts = Object.values(rankCounts).sort((a, b) => b - a);
+    const isFlush = Math.max(...Object.values(suitCounts)) === 5;
+    
+    const sortedRanks = [...new Set(ranks)].sort((a, b) => a - b);
+    let isStraight = false;
+    if (sortedRanks.length === 5) {
+      if (sortedRanks[4] - sortedRanks[0] === 4) {
+        isStraight = true;
+      } else if (sortedRanks[0] === 2 && sortedRanks[4] === 14) {
+        isStraight = true;
+      }
+    }
+    
+    let category = 0;
+    if (isFlush && isStraight) {
+      category = 8;
+    } else if (counts[0] === 4) {
+      category = 7;
+    } else if (counts[0] === 3 && counts[1] === 2) {
+      category = 6;
+    } else if (isFlush) {
+      category = 5;
+    } else if (isStraight) {
+      category = 4;
+    } else if (counts[0] === 3) {
+      category = 3;
+    } else if (counts[0] === 2 && counts[1] === 2) {
+      category = 2;
+    } else if (counts[0] === 2) {
+      category = 1;
+    } else {
+      category = 0;
+    }
+    
+    return { category, rankCounts, sortedRanks, isStraight };
+  }
+  
+  const bestFive = findBestFiveCards();
+  const handEval = evaluateFiveCards(bestFive);
+  const rankCounts = handEval.rankCounts;
+  const sortedRanks = handEval.sortedRanks;
+  const isStraight = handEval.isStraight;
 
-  const rankGroups = Array.from(countsByRank.entries()).sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1];
-    return b[0] - a[0];
-  });
-  const maxCount = rankGroups[0]?.[1] || 0;
-  const maxRank = rankGroups[0]?.[0] || 0;
-  const secondCount = rankGroups[1]?.[1] || 0;
-  const secondRank = rankGroups[1]?.[0] || 0;
+  // 役名を生成
+  const counts = Object.values(rankCounts).sort((a, b) => b - a);
 
-  // 判定名
-  if (straightFlushTop >= 10 && straightFlushTop === 14) return 'ロイヤルフラッシュ';
-  if (straightFlushTop > 0) return `ストレートフラッシュ（ハイ ${rankNumToText(straightFlushTop)}）`;
-  if (maxCount === 4) return `フォーカード（${rankNumToText(maxRank)}）`;
-  if (maxCount === 3 && secondCount >= 2) return `フルハウス（${rankNumToText(maxRank)} と ${rankNumToText(secondRank)}）`;
-  if (isFlush) return 'フラッシュ';
-  if (straightTop) return `ストレート（ハイ ${rankNumToText(straightTop)}）`;
-  if (maxCount === 3) return `スリーカード（${rankNumToText(maxRank)}）`;
-  if (maxCount === 2 && secondCount === 2) {
-    const pairs = rankGroups.filter(([, c]) => c === 2).map(([r]) => r).sort((a, b) => b - a).slice(0, 2);
+  if (handEval.category === 8) {
+    return 'ロイヤルフラッシュ';
+  } else if (handEval.category === 7) {
+    const fourOf = Object.entries(rankCounts).find(([, count]) => count === 4);
+    return `フォーカード（${rankNumToText(parseInt(fourOf[0]))}）`;
+  } else if (handEval.category === 6) {
+    const threeOf = Object.entries(rankCounts).find(([, count]) => count === 3);
+    const pair = Object.entries(rankCounts).find(([, count]) => count === 2);
+    return `フルハウス（${rankNumToText(parseInt(threeOf[0]))} と ${rankNumToText(parseInt(pair[0]))}）`;
+  } else if (handEval.category === 5) {
+    return 'フラッシュ';
+  } else if (handEval.category === 4) {
+    const high = sortedRanks[0] === 2 && sortedRanks[4] === 14 ? 5 : sortedRanks[4];
+    return `ストレート（ハイ ${rankNumToText(high)}）`;
+  } else if (handEval.category === 3) {
+    const threeOf = Object.entries(rankCounts).find(([, count]) => count === 3);
+    return `スリーカード（${rankNumToText(parseInt(threeOf[0]))}）`;
+  } else if (handEval.category === 2) {
+    const pairs = Object.entries(rankCounts).filter(([, count]) => count === 2)
+      .map(([rank]) => parseInt(rank)).sort((a, b) => b - a);
     return `ツーペア（${rankNumToText(pairs[0])} と ${rankNumToText(pairs[1])}）`;
+  } else if (handEval.category === 1) {
+    const pair = Object.entries(rankCounts).find(([, count]) => count === 2);
+    return `ワンペア（${rankNumToText(parseInt(pair[0]))}）`;
+  } else {
+    // ハイカード: ホール2枚の高い方をそのままハイとして表示
+    const holeVals = holes.map(c => (c.rank === 1 ? 14 : c.rank)).sort((a, b) => b - a);
+    return `${rankNumToText(holeVals[0])}ハイ`;
   }
-  if (maxCount === 2) return `ワンペア（${rankNumToText(maxRank)}）`;
-  // ハイカード: ホール2枚の高い方をそのままハイとして表示
-  const holeVals = holes.map(c => (c.rank === 1 ? 14 : c.rank)).sort((a, b) => b - a);
-  return `${rankNumToText(holeVals[0])}ハイ`;
 }
 
 export function showdown() {
