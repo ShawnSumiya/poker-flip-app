@@ -218,13 +218,13 @@
     </div>
 
     <div id="tableArea">
-      <div id="status" class="status"></div>
       <div style="display:flex; align-items:center; justify-content:center; gap:16px; width:100%;">
         <div class="board-holder">
           <div id="community" class="board-row"></div>
         </div>
       </div>
       <div id="seats" class="seats"></div>
+      <div id="status" class="status"></div>
     </div>
 
     <!-- コピーライト -->
@@ -464,7 +464,10 @@
           // 念のため、座席エリアの最後へスクロール（長い画面で効果）
           try {
             const lastSeat = seats.lastElementChild;
-            if (lastSeat) lastSeat.scrollIntoView({ behavior: 'auto', block: 'end' });
+            // PCでは勝手にスクロールしない。モバイル時のみ実行
+            if (window.innerWidth <= 768 && lastSeat) {
+              lastSeat.scrollIntoView({ behavior: 'auto', block: 'end' });
+            }
           } catch (_) {}
         }
       });

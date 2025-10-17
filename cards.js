@@ -221,10 +221,11 @@ function setStatus(text) {
     gameState.statusEl.setAttribute('role', 'status');
     gameState.statusEl.setAttribute('aria-live', 'polite');
     try {
-      gameState.statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (_) {
-      // scrollIntoView未対応環境は無視
-    }
+      // PCでは勝手にスクロールさせない。モバイル幅のみスクロール
+      if (window.innerWidth <= 768) {
+        gameState.statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    } catch (_) {}
   }
 }
 
