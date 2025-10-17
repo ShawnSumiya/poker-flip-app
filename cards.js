@@ -215,7 +215,17 @@ function renderSeats() {
 }
 
 function setStatus(text) {
-  if (gameState.statusEl) gameState.statusEl.textContent = text;
+  if (gameState.statusEl) {
+    gameState.statusEl.textContent = text;
+    // アクセシビリティと可視性を向上
+    gameState.statusEl.setAttribute('role', 'status');
+    gameState.statusEl.setAttribute('aria-live', 'polite');
+    try {
+      gameState.statusEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (_) {
+      // scrollIntoView未対応環境は無視
+    }
+  }
 }
 
 export function startNewHand({ seatsEl, communityEl, statusEl, numPlayers = 6 }) {
@@ -277,7 +287,10 @@ export function flipStreet(street) {
 
 // 7枚(2+5)中ベスト5枚の強さを評価
 function evaluateSeven(holes, community) {
-  const cards = [...holes, ...community];
+  // 入力防御と整形
+  const safeHoles = Array.isArray(holes) ? holes.filter(Boolean) : [];
+  const safeCommunity = Array.isArray(community) ? community.filter(Boolean) : [];
+  const cards = [...safeHoles, ...safeCommunity];
   
   // 7枚から5枚を選ぶ全組み合わせを生成して最強の手を探す
   function findBestHand() {
@@ -296,7 +309,9 @@ function evaluateSeven(holes, community) {
       }
     }
     
-    generateCombos(cards, 0, []);
+    if (cards.length >= 5) {
+      generateCombos(cards, 0, []);
+    }
     
     // デバッグ: カード数と組み合わせ数を確認
     console.log('Cards:', cards.length, cards);
@@ -342,7 +357,10 @@ function evaluateSeven(holes, community) {
     }
     
     if (!best) {
-      // フォールバック: 最初の5枚を使用
+      // フォールバック: 5枚未満なら安全な評価を返す
+      if (cards.length < 5) {
+        return { category: 0, kickerRanks: [0] };
+      }
       best = cards.slice(0, 5);
     }
     return evaluateFiveCards(best);
@@ -459,8 +477,10 @@ function rankNumToText(n) {
 }
 
 function describeBestHand(holes, community) {
-  // evaluateSevenと同じロジックを使用して最強の5枚を特定
-  const cards = [...holes, ...community];
+  // evaluateSevenと同じロジックを使用して最強の5枚を特定（入力防御）
+  const safeHoles = Array.isArray(holes) ? holes.filter(Boolean) : [];
+  const safeCommunity = Array.isArray(community) ? community.filter(Boolean) : [];
+  const cards = [...safeHoles, ...safeCommunity];
   
   function findBestFiveCards() {
     const combinations = [];
@@ -477,7 +497,9 @@ function describeBestHand(holes, community) {
       }
     }
     
-    generateCombos(cards, 0, []);
+    if (cards.length >= 5) {
+      generateCombos(cards, 0, []);
+    }
     
     // デバッグ: カード数と組み合わせ数を確認
     console.log('Cards:', cards.length, cards);
@@ -522,7 +544,10 @@ function describeBestHand(holes, community) {
       }
     }
     
-    return best || cards.slice(0, 5);
+    if (!best) {
+      return cards.slice(0, 5);
+    }
+    return best;
   }
   
   function evaluateFiveCards(fiveCards) {
@@ -603,6 +628,9 @@ function describeBestHand(holes, community) {
   }
   
   const bestFive = findBestFiveCards();
+  if (!bestFive || bestFive.length < 5) {
+    return 'ハイカード';
+  }
   const handEval = evaluateFiveCards(bestFive);
   const rankCounts = handEval.rankCounts;
   

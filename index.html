@@ -6,20 +6,44 @@
   <title>Poker Flip App</title>
   <meta name="description" content="トランプカードをフリップして表示するミニアプリ">
   
+  <!-- OGP設定（LINE転送時のプレビュー用） -->
+  <meta property="og:title" content="Poker Flip App">
+  <meta property="og:description" content="トランプカードをフリップして表示するポーカーアプリ">
+  <meta property="og:image" content="./icons/icon-512x512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:url" content="https://poker-flip-app.netlify.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Poker Flip App">
+  <meta property="og:locale" content="ja_JP">
+  
+  <!-- Twitter Card設定 -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Poker Flip App">
+  <meta name="twitter:description" content="トランプカードをフリップして表示するポーカーアプリ">
+  <meta name="twitter:image" content="./icons/icon-512x512.png">
+  
+  <!-- LINE用の追加設定 -->
+  <meta name="application-name" content="Poker Flip App">
+  <meta name="msapplication-TileImage" content="./icons/icon-192x192.png">
+  <meta name="msapplication-TileColor" content="#ff9f43">
+  
   <!-- PWA設定 -->
   <meta name="theme-color" content="#ff9f43">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Poker Flip">
-  <meta name="msapplication-TileColor" content="#ff9f43">
   <meta name="msapplication-tap-highlight" content="no">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="Poker Flip">
   <meta name="format-detection" content="telephone=no">
   
   <!-- アイコン設定 -->
-  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIGZpbGw9IiM2NjdlZWEiIHJ4PSI0Ii8+PHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjkiIGhlaWdodD0iMTMiIGZpbGw9IiNmZmZmZmYiIHJ4PSIyIi8+PHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iOSIgaGVpZ2h0PSIxMyIgZmlsbD0iI2ZmZmZmZiIgcng9IjIiLz48dGV4dCB4PSIxNiIgeT0iMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QPC90ZXh0Pjwvc3ZnPg==">
-  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIGZpbGw9IiM2NjdlZWEiIHJ4PSIyNCIvPjxyZWN0IHg9IjM2IiB5PSI0OCIgd2lkdGg9IjU0IiBoZWlnaHQ9Ijc4IiBmaWxsPSIjZmZmZmZmIiByeD0iMTIiLz48cmVjdCB4PSI2MCIgeT0iNjAiIHdpZHRoPSI1NCIgaGVpZ2h0PSI3OCIgZmlsbD0iI2ZmZmZmZiIgcng9IjEyIi8+PHRleHQgeD0iOTYiIHk9IjEzMiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQ4IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qb2tlcjwvdGV4dD48L3N2Zz4=">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./icons/icon-512x512.png">
   
   <!-- Web App Manifest -->
   <link rel="manifest" href="./manifest.json">
@@ -85,6 +109,34 @@
       width: 100%;
       max-width: 960px;
       box-sizing: border-box;
+    }
+
+    /* PC表示時: ページ全体をスクロール可能にし、中央寄せ */
+    @media (min-width: 769px) {
+      html {
+        overflow-y: scroll !important; /* 常に縦スクロールバーを出し、レイアウト確定 */
+      }
+      html, body {
+        height: auto !important;
+        overflow-y: auto !important;
+      }
+      body {
+        display: block !important;
+        align-items: initial !important;
+        justify-content: initial !important;
+        min-height: auto !important;
+        overflow-y: auto !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        will-change: auto !important;
+        background-attachment: scroll !important; /* 固定背景がスクロールを阻害する可能性を排除 */
+        position: static !important;
+      }
+      .container {
+        margin: 24px auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
     }
 
     h1 {
@@ -166,13 +218,13 @@
     </div>
 
     <div id="tableArea">
+      <div id="status" class="status"></div>
       <div style="display:flex; align-items:center; justify-content:center; gap:16px; width:100%;">
         <div class="board-holder">
           <div id="community" class="board-row"></div>
         </div>
       </div>
       <div id="seats" class="seats"></div>
-      <div id="status" class="status"></div>
     </div>
 
     <!-- コピーライト -->
@@ -359,9 +411,26 @@
       }
     }
     
+    // PCでのスクロール問題を強制的に解決（特に初回に人数が多い場合）
+    function ensureDesktopScroll() {
+      if (window.innerWidth >= 769) {
+        document.documentElement.style.height = 'auto';
+        document.documentElement.style.overflowY = 'auto';
+        document.body.style.height = 'auto';
+        document.body.style.overflowY = 'auto';
+        document.body.style.transform = 'none';
+        document.body.style.webkitTransform = 'none';
+        document.body.style.willChange = 'auto';
+        document.body.style.backgroundAttachment = 'scroll';
+        document.body.style.position = 'static';
+      }
+    }
+
     // ページ読み込み時とリサイズ時に実行
     ensureMobileScroll();
+    ensureDesktopScroll();
     window.addEventListener('resize', ensureMobileScroll);
+    window.addEventListener('resize', ensureDesktopScroll);
 
     // NLH Flipout controls
     const playersCountInput = document.getElementById('playersCount');
@@ -384,7 +453,21 @@
     startFlipoutBtn.addEventListener('click', async () => {
       hideInstallPrompt();
       const n = Math.max(2, Math.min(12, parseInt(playersCountInput.value || '6', 10)));
-      await startNewHandAnimated({ seatsEl: seats, communityEl: community, statusEl, numPlayers: n });
+      await startNewHandAnimated({ 
+        seatsEl: seats, 
+        communityEl: community, 
+        statusEl, 
+        numPlayers: n,
+        onDone: () => {
+          // 初回から人数が多い場合でもスクロール可能にする
+          ensureDesktopScroll();
+          // 念のため、座席エリアの最後へスクロール（長い画面で効果）
+          try {
+            const lastSeat = seats.lastElementChild;
+            if (lastSeat) lastSeat.scrollIntoView({ behavior: 'auto', block: 'end' });
+          } catch (_) {}
+        }
+      });
     });
 
     // 手動のフロップ/ターン/リバーは削除（自動進行に一本化）
