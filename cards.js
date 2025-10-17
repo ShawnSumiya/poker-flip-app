@@ -552,6 +552,10 @@ function describeBestHand(holes, community) {
   }
   
   function evaluateFiveCards(fiveCards) {
+    // 入力防御: null/未定義/配列以外/要素不足を安全に処理
+    if (!fiveCards || !Array.isArray(fiveCards) || fiveCards.length < 5) {
+      return { category: 0, rankCounts: {}, sortedRanks: [0], isStraight: false, kickerRanks: [0] };
+    }
     const ranks = fiveCards.map(c => c.rank === 1 ? 14 : c.rank);
     const suits = fiveCards.map(c => c.suit);
     
