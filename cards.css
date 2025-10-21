@@ -18,11 +18,57 @@
   backface-visibility: hidden;
 }
 
+/* スート別のボーダー色 */
+.cute-card.spade {
+  border-color: #2c3e50;
+  box-shadow:
+    0 4px 15px rgba(0,0,0,0.1),
+    0 0 20px rgba(44, 62, 80, 0.3);
+}
+
+.cute-card.heart {
+  border-color: #e91e63;
+  box-shadow:
+    0 4px 15px rgba(0,0,0,0.1),
+    0 0 20px rgba(233, 30, 99, 0.3);
+}
+
+.cute-card.diamond {
+  border-color: #9c27b0;
+  box-shadow:
+    0 4px 15px rgba(0,0,0,0.1),
+    0 0 20px rgba(156, 39, 176, 0.3);
+}
+
+.cute-card.club {
+  border-color: #27ae60;
+  box-shadow:
+    0 4px 15px rgba(0,0,0,0.1),
+    0 0 20px rgba(39, 174, 96, 0.3);
+}
+
 .cute-card .rank { color: #000; }
-.cute-card.spade   .center-suit { color: #5a6abf; }
-.cute-card.heart   .center-suit { color: #ff6b9d; }
-.cute-card.diamond .center-suit { color: #d32f2f; }
-.cute-card.club    .center-suit { color: #4db89e; }
+
+/* スート別の色設定（濃い色に変更） */
+.cute-card.spade .rank,
+.cute-card.spade .center-suit { 
+  color: #2c3e50; 
+}
+
+.cute-card.heart .rank,
+.cute-card.heart .center-suit { 
+  color: #e91e63; 
+}
+
+.cute-card.diamond .rank,
+.cute-card.diamond .center-suit { 
+  color: #9c27b0; 
+}
+
+.cute-card.club .rank,
+.cute-card.club .center-suit { 
+  color: #27ae60; 
+}
 
 .cute-card .corner-top {
   position: absolute; top: 8px; left: 10px; text-align: center; line-height: 1.2; z-index: 1;
