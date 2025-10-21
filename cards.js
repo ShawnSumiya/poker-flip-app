@@ -799,4 +799,109 @@ export function autoReveal({
   if (autoShowdown) showdown();
 }
 
+// アプリの強制終了検知とキャッシュクリア機能
+export function initAppLifecycleManager() {
+  console.log('App Lifecycle Manager: Initializing...');
+  
+  // Service Workerとの通信チャンネルを作成
+  let swChannel;
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      swChannel = new MessageChannel();
+      
+      // Service Workerにメッセージチャンネルを送信
+      registration.active.postMessage({
+        type: 'INIT_CHANNEL'
+      }, [swChannel.port2]);
+      
+      // ポート1でメッセージを受信
+      swChannel.port1.onmessage = (event) => {
+        console.log('App received message from SW:', event.data);
+      };
+      
+      swChannel.port1.start();
+    });
+  }
+  
+  // ページの可視性が変わった時の処理
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      console.log('App: Page became hidden');
+      // ページが非表示になった時は何もしない（バックグラウンド移行）
+    } else {
+      console.log('App: Page became visible');
+      // ページが再表示された時はService Workerに状態を通知
+      if (swChannel) {
+        swChannel.port1.postMessage({
+          type: 'APP_RESUMED'
+        });
+      }
+    }
+  });
+  
+  // ページがアンロードされる時の処理
+  window.addEventListener('beforeunload', () => {
+    console.log('App: Before unload - normal close');
+    // 通常の終了時は何もしない
+  });
+  
+  // ページが完全にアンロードされた時の処理
+  window.addEventListener('unload', () => {
+    console.log('App: Unload - page closed');
+    // ページが閉じられた時はService Workerに通知
+    if (swChannel) {
+      swChannel.port1.postMessage({
+        type: 'APP_CLOSED'
+      });
+    }
+  });
+  
+  // アプリが強制終了された可能性を検知するためのタイマー
+  let lastActivity = Date.now();
+  let activityTimer;
+  
+  // ユーザーアクティビティを記録
+  const updateActivity = () => {
+    lastActivity = Date.now();
+  };
+  
+  // マウス、タッチ、キーボードイベントを監視
+  ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'touchmove'].forEach(event => {
+    document.addEventListener(event, updateActivity, true);
+  });
+  
+  // 定期的にアクティビティをチェック
+  activityTimer = setInterval(() => {
+    const now = Date.now();
+    const timeSinceLastActivity = now - lastActivity;
+    
+    // 30秒間アクティビティがない場合、アプリが非アクティブと判断
+    if (timeSinceLastActivity > 30000) {
+      console.log('App: No activity for 30 seconds - app may be backgrounded');
+    }
+    
+    // 5分間アクティビティがない場合、強制終了された可能性が高い
+    if (timeSinceLastActivity > 300000) {
+      console.log('App: No activity for 5 minutes - app may be force closed');
+      if (swChannel) {
+        swChannel.port1.postMessage({
+          type: 'APP_FORCE_CLOSE'
+        });
+      }
+    }
+  }, 10000); // 10秒ごとにチェック
+  
+  // 手動でキャッシュをクリアする関数
+  window.clearAppCache = () => {
+    console.log('App: Manual cache clear requested');
+    if (swChannel) {
+      swChannel.port1.postMessage({
+        type: 'CLEAR_CACHE'
+      });
+    }
+  };
+  
+  console.log('App Lifecycle Manager: Initialized');
+}
+
 

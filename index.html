@@ -528,6 +528,15 @@
     });
     playersCountInput.addEventListener('change', () => clampPlayers(playersCountInput.value));
     playersCountInput.addEventListener('blur', () => clampPlayers(playersCountInput.value));
+    
+    // アプリライフサイクルマネージャーを初期化
+    import('./cards.js').then(module => {
+      if (module.initAppLifecycleManager) {
+        module.initAppLifecycleManager();
+      }
+    }).catch(error => {
+      console.log('Failed to initialize app lifecycle manager:', error);
+    });
   </script>
 </body>
 </html>
