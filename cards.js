@@ -332,11 +332,20 @@ function evaluateSeven(holes, community) {
       // より詳細なスコアリング（ツーペアの場合、低いペアも考慮）
       let score = handEval.category * 10000;
       if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
-        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー + ボーナス
-        score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
-        score += 10000; // ツーペアにボーナスを追加（スリーカードより高くする）
+        // ツーペア: 高いペア * 10000 + 低いペア * 100 + キッカー
+        score += (handEval.kickerRanks[0] || 0) * 10000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
       } else if (handEval.category === 5) {
         // フラッシュ: 全キッカーランクを考慮
+        for (let i = 0; i < handEval.kickerRanks.length; i++) {
+          score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+        }
+      } else if (handEval.category === 1) {
+        // ワンペア: ペア + 全キッカーランクを考慮
+        for (let i = 0; i < handEval.kickerRanks.length; i++) {
+          score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+        }
+      } else if (handEval.category === 3) {
+        // スリーカード: スリーカード + 全キッカーランクを考慮
         for (let i = 0; i < handEval.kickerRanks.length; i++) {
           score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
         }
@@ -520,11 +529,20 @@ function describeBestHand(holes, community) {
       // より詳細なスコアリング（ツーペアの場合、低いペアも考慮）
       let score = handEval.category * 10000;
       if (handEval.category === 2 && handEval.kickerRanks.length >= 2) {
-        // ツーペア: 高いペア * 1000 + 低いペア * 100 + キッカー + ボーナス
-        score += (handEval.kickerRanks[0] || 0) * 1000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
-        score += 10000; // ツーペアにボーナスを追加（スリーカードより高くする）
+        // ツーペア: 高いペア * 10000 + 低いペア * 100 + キッカー
+        score += (handEval.kickerRanks[0] || 0) * 10000 + (handEval.kickerRanks[1] || 0) * 100 + (handEval.kickerRanks[2] || 0);
       } else if (handEval.category === 5) {
         // フラッシュ: 全キッカーランクを考慮
+        for (let i = 0; i < handEval.kickerRanks.length; i++) {
+          score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+        }
+      } else if (handEval.category === 1) {
+        // ワンペア: ペア + 全キッカーランクを考慮
+        for (let i = 0; i < handEval.kickerRanks.length; i++) {
+          score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
+        }
+      } else if (handEval.category === 3) {
+        // スリーカード: スリーカード + 全キッカーランクを考慮
         for (let i = 0; i < handEval.kickerRanks.length; i++) {
           score += (handEval.kickerRanks[i] || 0) * Math.pow(100, handEval.kickerRanks.length - 1 - i);
         }
